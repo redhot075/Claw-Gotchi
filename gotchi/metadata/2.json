@@ -1,0 +1,9 @@
+{
+  "name": "Claw-Gotchi #? (Baby)",
+  "description": "A cute baby lobster. Needs daily feeding to grow!",
+  "image": "https://redhot075.github.io/base-dapp-starter/gotchi/images/2.png",
+  "attributes": [
+    { "trait_type": "Stage", "value": "Baby" },
+    { "trait_type": "Level", "value": 2 }
+  ]
+}

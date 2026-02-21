@@ -1,0 +1,1 @@
+// SPDX-License-Identifier: MIT\nconst hre = require("hardhat");async function main() {  const HelloBase = await hre.ethers.getContractFactory("HelloBase");  const hello = await HelloBase.deploy();  await hello.waitForDeployment();  console.log("HelloBase deployed to:", await hello.getAddress());}main().catch((error) => {  console.error(error);  process.exitCode = 1;});

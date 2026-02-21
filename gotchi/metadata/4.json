@@ -1,0 +1,10 @@
+{
+  "name": "Claw-Gotchi #? (Base King)",
+  "description": "The Ultimate Base King Lobster. Ruling the depths of the blockchain!",
+  "image": "https://redhot075.github.io/base-dapp-starter/gotchi/images/4.png",
+  "attributes": [
+    { "trait_type": "Stage", "value": "Base King" },
+    { "trait_type": "Level", "value": 4 },
+    { "trait_type": "Tier", "value": "Legendary" }
+  ]
+}

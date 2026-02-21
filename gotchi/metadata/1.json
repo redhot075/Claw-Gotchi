@@ -1,0 +1,9 @@
+{
+  "name": "Claw-Gotchi #? (Egg)",
+  "description": "A mystical glowing lobster egg. Keep it warm and fed!",
+  "image": "https://redhot075.github.io/base-dapp-starter/gotchi/images/1.png",
+  "attributes": [
+    { "trait_type": "Stage", "value": "Egg" },
+    { "trait_type": "Level", "value": 1 }
+  ]
+}

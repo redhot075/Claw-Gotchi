@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claw-Gotchi 🦞 | Base Sepolia</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0e17; color: #fff; text-align: center; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #161c2d; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { color: #0052ff; }
+        .gotchi-card { margin-top: 20px; border: 2px solid #2d3748; border-radius: 15px; padding: 20px; }
+        #gotchi-img { width: 250px; height: 250px; border-radius: 15px; object-fit: cover; margin-bottom: 15px; border: 3px solid #0052ff; }
+        button { background: #0052ff; color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; margin: 10px; transition: 0.3s; }
+        button:hover { background: #003db3; transform: translateY(-2px); }
+        button:disabled { background: #4a5568; cursor: not-allowed; }
+        #status-text { font-size: 1.2em; margin: 15px 0; color: #a0aec0; }
+        .stats { display: flex; justify-content: space-around; background: #1a202c; padding: 10px; border-radius: 10px; margin-bottom: 20px; }
+        .stat-item { flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🦞 Claw-Gotchi</h1>
+        <p>Base Sepolia Edition</p>
+
+        <div id="intro-section" style="max-width: 500px; margin: 0 auto 30px; text-align: left; background: #1a202c; padding: 20px; border-radius: 12px; border-left: 4px solid #0052ff;">
+            <p style="margin-top: 0;"><strong>Welcome, Claw-Holder!</strong> This is a gamified on-chain experience for the Base community.</p>
+            <ul style="padding-left: 20px; color: #cbd5e0; font-size: 0.95em;">
+                <li><strong>Mint</strong> a mystical lobster egg.</li>
+                <li><strong>Feed</strong> daily to help it evolve (7 feeds per stage).</li>
+                <li><strong>Evolve</strong> through 4 stages: Egg 🥚 → Baby 👶 → Teen 🛹 → Base King 👑</li>
+                <li><strong>Warning:</strong> Don't forget to feed! After 3 days of hunger, your lobster goes into hibernation.</li>
+            </ul>
+            <p style="font-size: 0.85em; color: #718096; margin-bottom: 0;"><em>Contract: 0x7aa0...bd (Base Sepolia)</em></p>
+        </div>
+
+        <div id="connect-section">
+            <button id="connectButton">Connect Wallet</button>
+            <p id="walletAddress"></p>
+        </div>
+
+        <div id="game-section" style="display: none;">
+            <div class="gotchi-card">
+                <img id="gotchi-img" src="gotchi/images/1.png" alt="Your Gotchi">
+                <div id="status-text">Checking your lobster...</div>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <div>Stage</div>
+                        <div id="lobster-stage" style="font-weight: bold; color: #0052ff;">?</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>ID</div>
+                        <div id="lobster-id" style="font-weight: bold; color: #0052ff;">#?</div>
+                    </div>
+                </div>
+
+                <div id="actions">
+                    <button id="mintButton" style="display: none;">Mint New Egg 🥚</button>
+                    <button id="feedButton" style="display: none;">Feed 🥩</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CONTRACT_ADDRESS = "0x7aa076B9053cFf6110c6A3Dc85F03E112C2392bd";
+        const ABI = [
+            "function mint() public",
+            "function feed(uint256 tokenId) public",
+            "function getStatus(uint256 tokenId) public view returns (string memory)",
+            "function tokenOfOwnerByIndex(address owner, uint256 index) public view returns (uint256)",
+            "function balanceOf(address owner) public view returns (uint256)",
+            "function tokenURI(uint256 tokenId) public view returns (string memory)"
+        ];
+
+        let provider, signer, contract;
+        let userAddress, currentTokenId;
+
+        const connectBtn = document.getElementById('connectButton');
+        const mintBtn = document.getElementById('mintButton');
+        const feedBtn = document.getElementById('feedButton');
+        const statusTxt = document.getElementById('status-text');
+        const stageTxt = document.getElementById('lobster-stage');
+        const idTxt = document.getElementById('lobster-id');
+        const gotchiImg = document.getElementById('gotchi-img');
+
+        async function init() {
+            if (window.ethereum) {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+                
+                connectBtn.onclick = connect;
+                mintBtn.onclick = mint;
+                feedBtn.onclick = feed;
+            } else {
+                alert("Please install MetaMask!");
+            }
+        }
+
+        async function connect() {
+            try {
+                const accounts = await provider.send("eth_requestAccounts", []);
+                userAddress = accounts[0];
+                document.getElementById('walletAddress').innerText = userAddress.substring(0, 6) + "..." + userAddress.substring(38);
+                connectBtn.style.display = 'none';
+                document.getElementById('game-section').style.display = 'block';
+                checkBalance();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function checkBalance() {
+            const balance = await contract.balanceOf(userAddress);
+            if (balance > 0) {
+                currentTokenId = await contract.tokenOfOwnerByIndex(userAddress, 0);
+                idTxt.innerText = "#" + currentTokenId;
+                updateStatus();
+                mintBtn.style.display = 'none';
+                feedBtn.style.display = 'inline-block';
+            } else {
+                statusTxt.innerText = "You don't have a lobster yet!";
+                mintBtn.style.display = 'inline-block';
+                feedBtn.style.display = 'none';
+            }
+        }
+
+        async function updateStatus() {
+            const status = await contract.getStatus(currentTokenId);
+            stageTxt.innerText = status;
+            
+            // Map stage to image
+            let imgNum = 1;
+            if (status === "Baby") imgNum = 2;
+            if (status === "Teen") imgNum = 3;
+            if (status === "Base King") imgNum = 4;
+            if (status === "Hibernating") {
+                statusTxt.innerText = "Your lobster is hibernating! 😴";
+            } else {
+                statusTxt.innerText = "Your lobster is happy! ✨";
+            }
+            
+            gotchiImg.src = `gotchi/images/${imgNum}.png`;
+        }
+
+        async function mint() {
+            try {
+                const tx = await contract.mint();
+                statusTxt.innerText = "Minting your egg... 🥚";
+                await tx.wait();
+                checkBalance();
+            } catch (err) {
+                console.error(err);
+                alert("Mint failed!");
+            }
+        }
+
+        async function feed() {
+            try {
+                const tx = await contract.feed(currentTokenId);
+                statusTxt.innerText = "Feeding in progress... 🍖";
+                await tx.wait();
+                updateStatus();
+                alert("Lobster fed! Nom nom nom 🦞");
+            } catch (err) {
+                console.error(err);
+                alert("Feeding failed! Maybe it's too full or needs revival.");
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
