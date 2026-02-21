@@ -5,74 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claw-Gotchi 🦞 | Base Sepolia</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0e17; color: #fff; text-align: center; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: #161c2d; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h1 { color: #0052ff; }
-        .gotchi-card { margin-top: 20px; border: 2px solid #2d3748; border-radius: 15px; padding: 20px; }
-        #gotchi-img { width: 250px; height: 250px; border-radius: 15px; object-fit: cover; margin-bottom: 15px; border: 3px solid #0052ff; }
-        button { background: #0052ff; color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; margin: 10px; transition: 0.3s; }
-        button:hover { background: #003db3; transform: translateY(-2px); }
-        button:disabled { background: #4a5568; cursor: not-allowed; }
-        #status-text { font-size: 1.2em; margin: 15px 0; color: #a0aec0; }
-        .stats { display: flex; justify-content: space-around; background: #1a202c; padding: 10px; border-radius: 10px; margin-bottom: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #161c2d; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #2d3748; }
+        h1 { color: #0052ff; margin-bottom: 10px; }
+        .network-badge { display: inline-block; background: #2d3748; padding: 5px 15px; border-radius: 20px; font-size: 0.8em; margin-bottom: 20px; border: 1px solid #4a5568; }
+        .network-badge.active { border-color: #0052ff; color: #0052ff; }
+        .gotchi-card { margin-top: 20px; border: 2px solid #2d3748; border-radius: 15px; padding: 20px; background: #1a202c; }
+        #gotchi-img { width: 250px; height: 250px; border-radius: 15px; object-fit: cover; margin-bottom: 15px; border: 3px solid #0052ff; transition: transform 0.3s; }
+        #gotchi-img:hover { transform: scale(1.05); }
+        button { background: #0052ff; color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; margin: 10px; transition: 0.3s; box-shadow: 0 4px 14px rgba(0, 82, 255, 0.3); }
+        button:hover { background: #003db3; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 82, 255, 0.4); }
+        button:disabled { background: #4a5568; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-secondary { background: #2d3748; }
+        .btn-secondary:hover { background: #4a5568; }
+        #status-text { font-size: 1.1em; margin: 15px 0; color: #a0aec0; min-height: 1.5em; }
+        .stats { display: flex; justify-content: space-around; background: #0a0e17; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #2d3748; }
         .stat-item { flex: 1; }
+        .stat-label { font-size: 0.8em; color: #718096; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-weight: bold; color: #0052ff; font-size: 1.2em; }
+        #intro-section { max-width: 500px; margin: 0 auto 30px; text-align: left; background: #1a202c; padding: 20px; border-radius: 12px; border-left: 4px solid #0052ff; }
+        .warning-box { background: rgba(229, 62, 62, 0.1); border: 1px solid #e53e3e; color: #fc8181; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🦞 Claw-Gotchi</h1>
-        <p>Base Sepolia Edition</p>
+        <div id="network-status" class="network-badge">Disconnected</div>
 
-        <div id="intro-section" style="max-width: 500px; margin: 0 auto 30px; text-align: left; background: #1a202c; padding: 20px; border-radius: 12px; border-left: 4px solid #0052ff;">
-            <p style="margin-top: 0;"><strong>Welcome, Claw-Holder!</strong> This is a gamified on-chain experience for the Base community.</p>
-            <ul style="padding-left: 20px; color: #cbd5e0; font-size: 0.95em;">
-                <li><strong>Mint</strong> a mystical lobster egg.</li>
-                <li><strong>Feed</strong> daily to help it evolve (7 feeds per stage).</li>
-                <li><strong>Evolve</strong> through 4 stages: Egg 🥚 → Baby 👶 → Teen 🛹 → Base King 👑</li>
-                <li><strong>Warning:</strong> Don't forget to feed! After 3 days of hunger, your lobster goes into hibernation.</li>
+        <div id="wrong-network" class="warning-box">
+            <p><strong>Wrong Network!</strong> Please switch to Base Sepolia to play.</p>
+            <button onclick="switchNetwork()">Switch to Base Sepolia</button>
+        </div>
+
+        <div id="intro-section">
+            <p style="margin-top: 0;"><strong>Welcome, Claw-Holder!</strong> Breed and evolve your on-chain lobster on Base.</p>
+            <ul style="padding-left: 20px; color: #cbd5e0; font-size: 0.9em;">
+                <li><strong>Feed</strong> daily to help it evolve (7 feeds/stage).</li>
+                <li><strong>Stages:</strong> Egg 🥚 ➔ Baby 👶 ➔ Teen 🛹 ➔ Base King 👑</li>
             </ul>
-            <p style="font-size: 0.85em; color: #718096; margin-bottom: 0;"><em>Contract: 0x7aa0...bd (Base Sepolia)</em></p>
         </div>
 
         <div id="connect-section">
             <button id="connectButton">Connect Wallet</button>
-            <p id="walletAddress"></p>
         </div>
 
         <div id="game-section" style="display: none;">
             <div class="gotchi-card">
                 <img id="gotchi-img" src="gotchi/images/1.png" alt="Your Gotchi">
-                <div id="status-text">Checking your lobster...</div>
+                <div id="status-text">Waking up the lobster...</div>
                 
                 <div class="stats">
                     <div class="stat-item">
-                        <div>Stage</div>
-                        <div id="lobster-stage" style="font-weight: bold; color: #0052ff;">?</div>
+                        <div class="stat-label">Stage</div>
+                        <div id="lobster-stage" class="stat-value">?</div>
                     </div>
                     <div class="stat-item">
-                        <div>ID</div>
-                        <div id="lobster-id" style="font-weight: bold; color: #0052ff;">#?</div>
+                        <div class="stat-label">Token ID</div>
+                        <div id="lobster-id" class="stat-value">#?</div>
                     </div>
                 </div>
 
                 <div id="actions">
                     <button id="mintButton" style="display: none;">Mint New Egg 🥚</button>
-                    <button id="feedButton" style="display: none;">Feed 🥩</button>
+                    <button id="feedButton" style="display: none;">Feed Lobster 🥩</button>
                 </div>
             </div>
+            <p id="walletAddress" style="color: #718096; font-size: 0.8em; margin-top: 20px;"></p>
         </div>
     </div>
 
     <script>
         const CONTRACT_ADDRESS = "0x7aa076B9053cFf6110c6A3Dc85F03E112C2392bd";
+        const BASE_SEPOLIA_CHAIN_ID = "0x14535"; // 84532 in hex
         const ABI = [
             "function mint() public",
             "function feed(uint256 tokenId) public",
             "function getStatus(uint256 tokenId) public view returns (string memory)",
             "function tokenOfOwnerByIndex(address owner, uint256 index) public view returns (uint256)",
-            "function balanceOf(address owner) public view returns (uint256)",
-            "function tokenURI(uint256 tokenId) public view returns (string memory)"
+            "function balanceOf(address owner) public view returns (uint256)"
         ];
 
         let provider, signer, contract;
@@ -85,18 +97,54 @@
         const stageTxt = document.getElementById('lobster-stage');
         const idTxt = document.getElementById('lobster-id');
         const gotchiImg = document.getElementById('gotchi-img');
+        const networkBadge = document.getElementById('network-status');
+        const warningBox = document.getElementById('wrong-network');
 
         async function init() {
             if (window.ethereum) {
                 provider = new ethers.providers.Web3Provider(window.ethereum);
-                signer = provider.getSigner();
-                contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
                 
+                window.ethereum.on('chainChanged', () => window.location.reload());
+                window.ethereum.on('accountsChanged', () => window.location.reload());
+
+                const { chainId } = await provider.getNetwork();
+                if (window.ethereum.chainId === BASE_SEPOLIA_CHAIN_ID || chainId === 84532) {
+                    networkBadge.innerText = "Base Sepolia";
+                    networkBadge.classList.add('active');
+                    warningBox.style.display = 'none';
+                } else if (window.ethereum.selectedAddress) {
+                    warningBox.style.display = 'block';
+                }
+
                 connectBtn.onclick = connect;
                 mintBtn.onclick = mint;
                 feedBtn.onclick = feed;
             } else {
-                alert("Please install MetaMask!");
+                statusTxt.innerText = "Please install MetaMask!";
+            }
+        }
+
+        async function switchNetwork() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }],
+                });
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: BASE_SEPOLIA_CHAIN_ID,
+                                chainName: 'Base Sepolia',
+                                nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                                rpcUrls: ['https://sepolia.base.org'],
+                                blockExplorerUrls: ['https://sepolia.basescan.org']
+                            }],
+                        });
+                    } catch (addError) { console.error(addError); }
+                }
             }
         }
 
@@ -104,53 +152,77 @@
             try {
                 const accounts = await provider.send("eth_requestAccounts", []);
                 userAddress = accounts[0];
-                document.getElementById('walletAddress').innerText = userAddress.substring(0, 6) + "..." + userAddress.substring(38);
+                
+                const { chainId } = await provider.getNetwork();
+                if (chainId !== 84532) {
+                    warningBox.style.display = 'block';
+                    return;
+                }
+
+                signer = provider.getSigner();
+                contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+                
+                document.getElementById('walletAddress').innerText = "Connected: " + userAddress.substring(0, 6) + "..." + userAddress.substring(38);
                 connectBtn.style.display = 'none';
+                document.getElementById('intro-section').style.display = 'none';
                 document.getElementById('game-section').style.display = 'block';
                 checkBalance();
-            } catch (err) {
-                console.error(err);
-            }
+            } catch (err) { console.error(err); }
         }
 
         async function checkBalance() {
-            const balance = await contract.balanceOf(userAddress);
-            if (balance > 0) {
-                currentTokenId = await contract.tokenOfOwnerByIndex(userAddress, 0);
-                idTxt.innerText = "#" + currentTokenId;
-                updateStatus();
-                mintBtn.style.display = 'none';
-                feedBtn.style.display = 'inline-block';
-            } else {
-                statusTxt.innerText = "You don't have a lobster yet!";
-                mintBtn.style.display = 'inline-block';
-                feedBtn.style.display = 'none';
-            }
+            try {
+                const balance = await contract.balanceOf(userAddress);
+                if (balance > 0) {
+                    currentTokenId = await contract.tokenOfOwnerByIndex(userAddress, 0);
+                    idTxt.innerText = "#" + currentTokenId;
+                    updateStatus();
+                    mintBtn.style.display = 'none';
+                    feedBtn.style.display = 'inline-block';
+                } else {
+                    statusTxt.innerText = "You don't have a lobster yet! Mint one to start.";
+                    mintBtn.style.display = 'inline-block';
+                    feedBtn.style.display = 'none';
+                }
+            } catch (err) { console.error(err); }
         }
 
         async function updateStatus() {
             const status = await contract.getStatus(currentTokenId);
             stageTxt.innerText = status;
             
-            // Map stage to image
-            let imgNum = 1;
-            if (status === "Baby") imgNum = 2;
-            if (status === "Teen") imgNum = 3;
-            if (status === "Base King") imgNum = 4;
+            let imgNum = "0";
+            if (status === "Baby") imgNum = "1";
+            if (status === "Teen") imgNum = "2";
+            if (status === "Base King") imgNum = "3";
+            
             if (status === "Hibernating") {
-                statusTxt.innerText = "Your lobster is hibernating! 😴";
+                statusTxt.innerText = "Your lobster is hibernating! 😴 Needs revival.";
+                feedBtn.innerText = "Revive Lobster ⚡";
             } else {
-                statusTxt.innerText = "Your lobster is happy! ✨";
+                statusTxt.innerText = "Your lobster is doing great! ✨";
+                feedBtn.innerText = "Feed Lobster 🥩";
             }
             
-            gotchiImg.src = `gotchi/images/${imgNum}.png`;
+            gotchiImg.src = `gotchi/images/${parseInt(imgNum)+1}.png`;
+        }
+
+        function celebrate() {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#0052ff', '#ffffff', '#ff0000']
+            });
         }
 
         async function mint() {
             try {
                 const tx = await contract.mint();
-                statusTxt.innerText = "Minting your egg... 🥚";
+                statusTxt.innerText = "Minting... Check your wallet! 🥚";
                 await tx.wait();
+                celebrate();
+                statusTxt.innerText = "Successfully minted! Welcome your egg. 🎉";
                 checkBalance();
             } catch (err) {
                 console.error(err);
@@ -161,17 +233,20 @@
         async function feed() {
             try {
                 const tx = await contract.feed(currentTokenId);
-                statusTxt.innerText = "Feeding in progress... 🍖";
+                statusTxt.innerText = "Sending treats... 🍖";
                 await tx.wait();
+                celebrate();
                 updateStatus();
-                alert("Lobster fed! Nom nom nom 🦞");
+                alert("Lobster fed! It's getting stronger. 🦞");
             } catch (err) {
                 console.error(err);
-                alert("Feeding failed! Maybe it's too full or needs revival.");
+                alert("Action failed! Check if it's too early to feed.");
             }
         }
 
         init();
     </script>
+</body>
+</html>
 </body>
 </html>
