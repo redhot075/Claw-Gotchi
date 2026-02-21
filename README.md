@@ -1,26 +1,21 @@
-# Base dApp Starter
+# 🦞 Claw-Gotchi
 
-Experiments on Coinbase Base L2: contracts, frontends, deploys.
+Gamified On-Chain Tamagotchi NFT on **Base Sepolia**.
 
-## Quickstart
+## Live Game
+👉 [https://redhot075.github.io/Claw-Gotchi/](https://redhot075.github.io/Claw-Gotchi/)
 
-`npm init` or Foundry/Hardhat for contracts.
+## About
+Claw-Gotchi is a simple experiment in on-chain evolution. Mint your lobster and take care of it through 24-hour feeding cycles.
 
-## Base RPCs
+- **Network:** Base Sepolia
+- **Contract:** [0x7aa076B9053cFf6110c6A3Dc85F03E112C2392bd](https://sepolia.basescan.org/address/0x7aa076B9053cFf6110c6A3Dc85F03E112C2392bd)
 
-- **Mainnet**: https://mainnet.base.org
-- **Testnet Sepolia**: https://sepolia.base.org
+## Gameplay
+1. **Mint**: Get a mystical Lobster Egg.
+2. **Feed**: Interact with the contract daily.
+3. **Evolve**: After 7 successful feeds, your lobster moves to the next life stage.
+4. **Stages**: Egg 🥚 → Baby 👶 → Teen 🛹 → Base King 👑
 
-Live Pages: https://redhot075.github.io/base-dapp-starter
-
-## Contracts
-
-- `contracts/HelloBase.sol`
-- `contracts/TestBase.sol`
-
-## Deploy
-
-1. `npm i`
-2. `cp env/.env.example .env`
-3. Add keys
-4. `npm run deploy`
+## Technicals
+Built with Hardhat, ethers.js, and pure on-chain logic for growth tracking. Metadata and assets are hosted via GitHub Pages.

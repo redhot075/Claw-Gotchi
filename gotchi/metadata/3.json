@@ -1,7 +1,7 @@
 {
   "name": "Claw-Gotchi #? (Teen)",
   "description": "This lobster is a real Degen now. Neon vibes and Base caps!",
-  "image": "https://redhot075.github.io/base-dapp-starter/gotchi/images/3.png",
+  "image": "https://redhot075.github.io/Claw-Gotchi/gotchi/images/3.png",
   "attributes": [
     { "trait_type": "Stage", "value": "Teen" },
     { "trait_type": "Level", "value": 3 },
