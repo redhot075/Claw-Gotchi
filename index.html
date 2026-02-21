@@ -133,7 +133,8 @@
                     params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }],
                 });
             } catch (switchError) {
-                if (switchError.code === 4902) {
+                // This error code indicates that the chain has not been added to MetaMask/Rabby.
+                if (switchError.code === 4902 || (switchError.data && switchError.data.originalError && switchError.data.originalError.code === 4902)) {
                     try {
                         await window.ethereum.request({
                             method: 'wallet_addEthereumChain',
@@ -146,6 +147,22 @@
                             }],
                         });
                     } catch (addError) { console.error(addError); }
+                } else {
+                    console.error("Switch network error:", switchError);
+                    // For Rabby or other wallets that might not throw 4902, 
+                    // we can also try to add the chain directly if switch fails.
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: BASE_SEPOLIA_CHAIN_ID,
+                                chainName: 'Base Sepolia',
+                                nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                                rpcUrls: ['https://sepolia.base.org'],
+                                blockExplorerUrls: ['https://sepolia.basescan.org']
+                            }],
+                        });
+                    } catch (retryError) { console.error(retryError); }
                 }
             }
         }
