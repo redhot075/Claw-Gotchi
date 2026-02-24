@@ -9,7 +9,7 @@ Gamified On-Chain Tamagotchi NFT on **Base Sepolia**.
 Claw-Gotchi is a simple experiment in on-chain evolution. Mint your lobster and take care of it through 24-hour feeding cycles.
 
 - **Network:** Base Sepolia
-- **Contract:** [0x7aa076B9053cFf6110c6A3Dc85F03E112C2392bd](https://sepolia.basescan.org/address/0x7aa076B9053cFf6110c6A3Dc85F03E112C2392bd)
+- **Contract:** [0x7aa076B9053cFf6110c6A3Dc85F03E112C2392bd](https://sepolia-explorer.base.org/address/0x7aa076B9053cFf6110c6A3Dc85F03E112C2392bd)
 
 ## Gameplay
 1. **Mint**: Get a mystical Lobster Egg.
