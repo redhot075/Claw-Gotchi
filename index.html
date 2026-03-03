@@ -84,9 +84,11 @@
         const ABI = [
             "function mint() public",
             "function feed(uint256 tokenId) public",
+            "function revive(uint256 tokenId) public payable",
             "function getStatus(uint256 tokenId) public view returns (string memory)",
             "function tokenOfOwnerByIndex(address owner, uint256 index) public view returns (uint256)",
-            "function balanceOf(address owner) public view returns (uint256)"
+            "function balanceOf(address owner) public view returns (uint256)",
+            "function lobsters(uint256 tokenId) public view returns (uint256 lastFed, uint256 level, bool isHibernating)"
         ];
 
         let provider, signer, contract;
@@ -196,6 +198,8 @@
                     currentTokenId = await contract.tokenOfOwnerByIndex(userAddress, 0);
                     idTxt.innerText = "#" + currentTokenId;
                     updateStatus();
+                    // Обновляем таймер каждую минуту
+                    setInterval(updateStatus, 60000);
                     mintBtn.style.display = 'none';
                     feedBtn.style.display = 'inline-block';
                 } else {
@@ -215,12 +219,29 @@
             if (status === "Teen") imgNum = "2";
             if (status === "Base King") imgNum = "3";
             
+            // Получаем данные лобстера для таймера
+            const lobsterData = await contract.lobsters(currentTokenId);
+            const lastFed = parseInt(lobsterData.lastFed);
+            const now = Math.floor(Date.now() / 1000);
+            const hoursSinceFed = (now - lastFed) / 3600;
+            const hoursUntilFeed = 12 - hoursSinceFed;
+            
             if (status === "Hibernating") {
                 statusTxt.innerText = "Your lobster is hibernating! 😴 Needs revival.";
                 feedBtn.innerText = "Revive Lobster ⚡";
-            } else {
-                statusTxt.innerText = "Your lobster is doing great! ✨";
+                feedBtn.disabled = false;
+            } else if (hoursUntilFeed > 0) {
+                // Лобстер сыт - ждём 12 часов
+                statusTxt.innerText = `Lobster is full! 🍖 Wait ${hoursUntilFeed.toFixed(1)}h more.`;
                 feedBtn.innerText = "Feed Lobster 🥩";
+                feedBtn.disabled = true;
+                feedBtn.title = `Can feed in ${hoursUntilFeed.toFixed(1)} hours`;
+            } else {
+                // Можно кормить!
+                statusTxt.innerText = "Your lobster is hungry! 🥩 Feed it now!";
+                feedBtn.innerText = "Feed Lobster 🥩";
+                feedBtn.disabled = false;
+                feedBtn.title = "";
             }
             
             gotchiImg.src = `gotchi/images/${parseInt(imgNum)+1}.png`;
@@ -251,15 +272,39 @@
 
         async function feed() {
             try {
-                const tx = await contract.feed(currentTokenId);
-                statusTxt.innerText = "Sending treats... 🍖";
-                await tx.wait();
-                celebrate();
-                updateStatus();
-                alert("Lobster fed! It's getting stronger. 🦞");
+                const status = await contract.getStatus(currentTokenId);
+                let tx;
+                
+                if (status === "Hibernating") {
+                    // Лобстер в спячке — нужен revive за 0.001 ETH
+                    statusTxt.innerText = "Reviving... Check your wallet! ⚡";
+                    tx = await contract.revive(currentTokenId, { value: ethers.utils.parseEther("0.001") });
+                    await tx.wait();
+                    celebrate();
+                    updateStatus();
+                    alert("Lobster revived! 😴 It's full now - come back in 12 hours to feed! 🦞⚡");
+                } else {
+                    // Обычное кормление
+                    statusTxt.innerText = "Sending treats... 🍖";
+                    tx = await contract.feed(currentTokenId);
+                    await tx.wait();
+                    celebrate();
+                    updateStatus();
+                    alert("Lobster fed! 🦞 Next feeding in 12 hours.");
+                }
             } catch (err) {
                 console.error(err);
-                alert("Action failed! Check if it's too early to feed.");
+                let msg = "Action failed! ";
+                if (err.reason === "Too full!") {
+                    msg += "Wait 12 hours between feeds.";
+                } else if (err.reason === "Not hibernating!") {
+                    msg += "Your lobster is not hibernating yet.";
+                } else if (err.reason === "Revive cost: 0.001 ETH") {
+                    msg += "Need 0.001 ETH to revive.";
+                } else {
+                    msg += "Check network/ETH balance.";
+                }
+                alert(msg);
             }
         }
 
